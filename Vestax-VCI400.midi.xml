@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MixxxControllerPreset schemaVersion="1" mixxxVersion="2.6+">
+    <info>
+        <name>Vestax VCI400 Mixxx 2.6+</name>
+        <author>Floris Vedder</author>
+        <description>Vestax VCI-400 mapping</description>
+    </info>
+    <controller id="VCI400">
+        <scriptfiles>
+            <file filename="midi-components-0-FV.js" />
+            <file filename="Vestax-VCI400-scripts.js" functionprefix="VCI400" />
+        </scriptfiles>
+        <outputs/>
+    </controller>
+    <settings>
+        <group label="Deck assignement">
+            <option variable="channelC" type="integer" min="1" default="3" max="4" label="channel C"/>
+            <option variable="channelA" type="integer" min="1" default="1" max="4" label="channel A"/>
+            <option variable="channelB" type="integer" min="1" default="2" max="4" label="channel B"/>
+            <option variable="channelD" type="integer" min="1" default="4" max="4" label="channel D"/>
+        </group>
+        <group label="Fx assignement">
+            <option variable="leftFX" type="integer" min="1" default="1" max="4" label="FX Left"/>
+            <option variable="rightFX" type="integer" min="1" default="2" max="4" label="FX Right"/>
+        </group>
+    </settings>
+</MixxxControllerPreset>
