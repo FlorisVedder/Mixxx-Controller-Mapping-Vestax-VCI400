@@ -524,6 +524,16 @@ VCI400.Deck = function (midiMap) {
         },
     });
 
+    // Extra hotcue buttons on the bottom row of the last pad section:
+    for (let i = 8; i <= 12; i++) {
+        let input = INPUT["mainPadIV" + (i-4)];
+        this['hotCue' + i] = new components.HotcueButton({
+            midiIn: [[input.noteOn, input.controlNumber], [input.noteOff, input.controlNumber]],
+            midiOut: [input.noteOn, input.controlNumber],
+            number: i,
+        });
+    }
+
     this['outroStart'] = new components.Button({
         midiIn: [[INPUT.mainPadIV3.noteOn, INPUT.mainPadIV3.controlNumber], [INPUT.mainPadIV3.noteOff, INPUT.mainPadIV3.controlNumber]],
         midiOut: [INPUT.mainPadIV3.noteOn, INPUT.mainPadIV3.controlNumber],
