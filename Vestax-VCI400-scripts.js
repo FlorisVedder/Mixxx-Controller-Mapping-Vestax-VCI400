@@ -209,6 +209,8 @@ VCI400.midiMapFX = function (fxSection) {
         'fxControl2': new this.Element(midi_channel, 0x02),
         'fxControl3': new this.Element(midi_channel, 0x03),
         'fxControl4': new this.Element(midi_channel, 0x04),
+        'fxSelect1': new this.Element(midi_channel, 0x08),
+        'fxSelect2': new this.Element(midi_channel, 0x09),
     };
     this.output = {
 
@@ -793,6 +795,23 @@ VCI400.FX = function (midiMap) {
     const STEP_SIZE = 0.05
     const INPUT = midiMap.input;
 
+    for (let i = 1; i <= 3; i++) {
+        this['param' + i]= new components.Pot({
+            midiIn: [INPUT["fxControl" + i].continuesControl, INPUT["fxControl" + i].controlNumber],
+            inKey: 'meta',
+            group: `[EffectRack1_EffectUnit${UNIT_NUMBER}_Effect${i}]`,
+        });
+
+        this['fxToggle' + i] = new components.Button({
+            midiIn: [INPUT["fxControl" + i].noteOn, INPUT["fxControl" + i].controlNumber],
+            midiOut: [INPUT["fxControl" + i].noteOn, INPUT["fxControl" + i].controlNumber],
+            inKey: 'enabled',
+            outKey: 'enabled',
+            group: `[EffectRack1_EffectUnit${UNIT_NUMBER}_Effect${i}]`,
+            type: components.Button.prototype.types.toggle,
+        });
+    }
+
     this.dryWet = new components.Encoder({
         midiIn: [INPUT.fxControl4.continuesControl, INPUT.fxControl4.controlNumber],
         input: function (channel, control, value) {
@@ -807,6 +826,42 @@ VCI400.FX = function (midiMap) {
         },
         shift: function () {
             this.inKey = "chain_preset_selector";
+        },
+    });
+
+    this.fxPfl = new components.Button({
+        midiIn: [[INPUT.fxControl4.noteOn, INPUT.fxControl4.controlNumber],[INPUT.fxControl4.noteOff, INPUT.fxControl4.controlNumber]],
+        midiOut: [INPUT.fxControl4.noteOn, INPUT.fxControl4.controlNumber],
+        key: "group_[Headphone]_enable",
+        type: components.Button.prototype.types.toggle,
+    });
+
+    this.fxMaster = new components.Button({
+        midiIn: [[INPUT.fxSelect1.noteOn, INPUT.fxSelect1.controlNumber],[INPUT.fxSelect1.noteOff, INPUT.fxSelect1.controlNumber]],
+        midiOut: [INPUT.fxSelect1.noteOn, INPUT.fxSelect1.controlNumber],
+        key: "group_[Master]_enable",
+        type: components.Button.prototype.types.toggle,
+        unshift: function () {
+            this.inKey = "group_[Master]_enable";
+            this.type = components.Button.prototype.types.toggle;
+        },
+        shift: function () {
+            this.inKey = "next_chain_preset";
+            this.type = components.Button.prototype.types.push;
+        },
+    });
+
+    this.fxMode = new components.Button({
+        midiIn: [[INPUT.fxSelect2.noteOn, INPUT.fxSelect2.controlNumber],[INPUT.fxSelect2.noteOff, INPUT.fxSelect2.controlNumber]],
+        midiOut: [INPUT.fxSelect2.noteOn, INPUT.fxSelect2.controlNumber],
+        key: 'mix_mode',
+        unshift: function () {
+            this.inKey = "mix_mode";
+            this.type = components.Button.prototype.types.toggle;
+        },
+        shift: function () {
+            this.inKey = "prev_chain_preset";
+            this.type = components.Button.prototype.types.push;
         },
     });
 
