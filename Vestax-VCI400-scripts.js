@@ -102,7 +102,7 @@ VCI400.midiMapDecks = function (deck) {
             'D': {deck: 6, pads: 10, encoderPush: 4},
         }
         return this.deckMapping[deck];
-    };
+    }
     const MIDI_CHANNEL = getMidiChannelMapping(deck);
 
     this.input = {
@@ -123,9 +123,28 @@ VCI400.midiMapDecks = function (deck) {
         'jogTouch': new this.Element(MIDI_CHANNEL.deck, 0X27),
         'sync': new this.Element(MIDI_CHANNEL.deck, 0x01),
         'load': new this.Element(MIDI_CHANNEL.deck, 0x02),
+        'encoderLeft': new this.Element(MIDI_CHANNEL.deck, 0X05),
+        'encoderLeftPush': new this.Element(MIDI_CHANNEL.encoderPush, 0X11),
+        'encoderRight': new this.Element(MIDI_CHANNEL.deck, 0X06),
+        'encoderRightPush': new this.Element(MIDI_CHANNEL.encoderPush, 0X14),
         'shift': new this.Element(MIDI_CHANNEL.deck, 0x0F),
         'cue': new this.Element(MIDI_CHANNEL.deck, 0x19),
         'play': new this.Element(MIDI_CHANNEL.deck, 0x1A),
+        // Track Pad mode left
+        'transport1': new this.Element(MIDI_CHANNEL.deck, 0X1B),
+        'transport2': new this.Element(MIDI_CHANNEL.deck, 0X1C),
+        'transport3': new this.Element(MIDI_CHANNEL.deck, 0X1D),
+        'transport4': new this.Element(MIDI_CHANNEL.deck, 0X1E),
+        // Track Pad mode center
+        'transport5': new this.Element(MIDI_CHANNEL.deck, 0X1F),
+        'transport6': new this.Element(MIDI_CHANNEL.deck, 0X20),
+        'transport7': new this.Element(MIDI_CHANNEL.deck, 0X21),
+        'transport8': new this.Element(MIDI_CHANNEL.deck, 0X22),
+        // Track Pad mode right
+        'transport9': new this.Element(MIDI_CHANNEL.deck, 0X23),
+        'transport10': new this.Element(MIDI_CHANNEL.deck, 0X24),
+        'transport11': new this.Element(MIDI_CHANNEL.deck, 0X25),
+        'transport12': new this.Element(MIDI_CHANNEL.deck, 0X26),
     };
     this.output = {
         // Only define outputs that are not covered by input definitions.
@@ -146,7 +165,7 @@ VCI400.midiMapFX = function (fxSection) {
             'right': 14,
         }
         return this.deckMapping[fxSection];
-    };
+    }
     let midi_channel = getMidiChannelMapping(fxSection);
 
     this.input = {
@@ -347,7 +366,52 @@ VCI400.Deck = function (midiMap) {
     const GROUP_NUMBER = midiMap.getGroupNumber();
     components.Deck.call(this, GROUP_NUMBER);
     const INPUT = midiMap.input;
-    const OUTPUT = midiMap.output;
+
+    this.beatjumpSize = new components.Encoder({
+        midiIn: [INPUT.encoderLeft.continuesControl, INPUT.encoderLeft.controlNumber],
+        input: function (channel, control, value) {
+            let currentValue = this.inGetParameter();
+            let newValue = currentValue * 2;
+            if (ENCODER_BALANCE - value < 0) {
+                newValue = currentValue / 2;
+            }
+            this.inSetParameter(newValue);
+        },
+        inKey: "beatjump_size",
+    });
+
+    this.beatjumpSizePush = new components.Button({
+        midiIn: [INPUT.encoderLeftPush.noteOn, INPUT.encoderLeftPush.controlNumber],
+        unshift: function() {
+            this.inKey = "beatjump_forward";
+        },
+        shift: function() {
+            this.inKey = "beatjump_backward";
+        },
+    });
+
+    this.beatloopSize = new components.Encoder({
+        midiIn: [INPUT.encoderRight.continuesControl, INPUT.encoderRight.controlNumber],
+        input: function (channel, control, value) {
+            let currentValue = this.inGetParameter();
+            let newValue = currentValue * 2;
+            if (ENCODER_BALANCE - value < 0) {
+                newValue = currentValue / 2;
+            }
+            this.inSetParameter(newValue);
+        },
+        inKey: "beatloop_size",
+    });
+
+    this.beatloopSizePush = new components.Button({
+        midiIn: [INPUT.encoderRightPush.noteOn, INPUT.encoderRightPush.controlNumber],
+        unshift: function() {
+            this.inKey = "beatloop_activate";
+        },
+        shift: function() {
+            this.inKey = "reloop_toggle";
+        },
+    });
 
     this.pitchFader = new components.Pot({
         midiIn: {'msb': [INPUT.pitchMSB.continuesControl, INPUT.pitchMSB.controlNumber], 'lsb': [INPUT.pitchLSB.continuesControl, INPUT.pitchLSB.controlNumber]},
@@ -376,8 +440,63 @@ VCI400.Deck = function (midiMap) {
 
     this.cueButton = new components.CueButton({
         midiIn: [INPUT.cue.noteOn, INPUT.cue.controlNumber],
-        // midiOut: [INPUT.cue.noteOn, INPUT.cue.controlNumber],
     });
+
+    // Track Pad mode left currently not mapped.
+
+    // Track Pad mode center, mapped with beatjump and loop:
+
+    this.beatJumpBackward = new components.Button({
+        midiIn: [INPUT.transport5.noteOn, INPUT.transport5.controlNumber],
+        midiOut: [INPUT.transport5.noteOn, INPUT.transport5.controlNumber],
+        outKey: "beatjump_backward",
+        unshift: function() {
+            this.inKey = "beatjump_backward";
+        },
+        shift: function() {
+            this.inKey = "beatjump_1_backward";
+        },
+    });
+
+    this.beatJumpForward = new components.Button({
+        midiIn: [INPUT.transport6.noteOn, INPUT.transport6.controlNumber],
+        midiOut: [INPUT.transport6.noteOn, INPUT.transport6.controlNumber],
+        outKey: "beatjump_forward",
+        unshift: function() {
+            this.inKey = "beatjump_forward";
+        },
+        shift: function() {
+            this.inKey = "beatjump_1_forward";
+        },
+    });
+
+    this.loopActivate = new components.Button({
+        midiIn: [INPUT.transport7.noteOn, INPUT.transport7.controlNumber],
+        midiOut: [INPUT.transport7.noteOn, INPUT.transport7.controlNumber],
+        outKey: "loop_enabled",
+        unshift: function() {
+            this.inKey = "beatloop_activate";
+        },
+        shift: function() {
+            this.inKey = "reloop_toggle";
+        },
+    });
+
+    this.loopAnchor = new components.Button({
+        midiIn: [INPUT.transport8.noteOn, INPUT.transport8.controlNumber],
+        midiOut: [INPUT.transport8.noteOn, INPUT.transport8.controlNumber],
+        outKey: "loop_anchor",
+        unshift: function() {
+            this.inKey = "loop_anchor";
+            this.type = components.Button.prototype.types.toggle;
+        },
+        shift: function() {
+            this.inKey = "beats_translate_curpos";
+            this.type = components.Button.prototype.types.push;
+        },
+    });
+
+    // Track Pad mode right currently not mapped.
 
     // Connect all components of this deck to the same control group.
     this.reconnectComponents(function (component) {
@@ -532,7 +651,6 @@ VCI400.FX = function (midiMap) {
     const UNIT_NUMBER = midiMap.getGroupNumber();
     const STEP_SIZE = 0.05
     const INPUT = midiMap.input;
-    const OUTPUT = midiMap.output
 
     this.dryWet = new components.Encoder({
         midiIn: [INPUT.fxControl4.continuesControl, INPUT.fxControl4.controlNumber],
