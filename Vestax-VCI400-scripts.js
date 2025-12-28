@@ -110,24 +110,60 @@ VCI400.midiMapDecks = function (deck) {
         'eqHi': new this.Element(MIDI_CHANNEL.deck, 0x0D),
         'eqMid': new this.Element(MIDI_CHANNEL.deck, 0x0E),
         'eqLow': new this.Element(MIDI_CHANNEL.deck, 0x0F),
+        'sync': new this.Element(MIDI_CHANNEL.deck, 0x01),
+        'load': new this.Element(MIDI_CHANNEL.deck, 0x02),
         'filter': new this.Element(MIDI_CHANNEL.deck, 0x10),
         'fxAssignLeft': new this.Element(MIDI_CHANNEL.deck, 0x03),
         'fxAssignRight': new this.Element(MIDI_CHANNEL.deck, 0x04),
         'pfl': new this.Element(MIDI_CHANNEL.deck, 0x05),
         'faderMSB': new this.Element(MIDI_CHANNEL.deck, 0x11),
         'faderLSB': new this.Element(MIDI_CHANNEL.deck, 0x31),
+        'encoderLeft': new this.Element(MIDI_CHANNEL.deck, 0X05),
+        'encoderLeftPush': new this.Element(MIDI_CHANNEL.encoderPush, 0X11),
+        'shift': new this.Element(MIDI_CHANNEL.deck, 0x0F),
+        'encoderRight': new this.Element(MIDI_CHANNEL.deck, 0X06),
+        'encoderRightPush': new this.Element(MIDI_CHANNEL.encoderPush, 0X14),
+        // Main Pad first section.
+        'mainPadI1': new this.Element(MIDI_CHANNEL.pads, 0x29),
+        'mainPadI2': new this.Element(MIDI_CHANNEL.pads, 0x2D),
+        'mainPadI3': new this.Element(MIDI_CHANNEL.pads, 0x31),
+        'mainPadI4': new this.Element(MIDI_CHANNEL.pads, 0x35),
+        'mainPadI5': new this.Element(MIDI_CHANNEL.pads, 0x39),
+        'mainPadI6': new this.Element(MIDI_CHANNEL.pads, 0x3D),
+        'mainPadI7': new this.Element(MIDI_CHANNEL.pads, 0x41),
+        'mainPadI8': new this.Element(MIDI_CHANNEL.pads, 0x45),
+        // Main Pad second section.
+        'mainPadII1': new this.Element(MIDI_CHANNEL.pads, 0x2A),
+        'mainPadII2': new this.Element(MIDI_CHANNEL.pads, 0x2E),
+        'mainPadII3': new this.Element(MIDI_CHANNEL.pads, 0x32),
+        'mainPadII4': new this.Element(MIDI_CHANNEL.pads, 0x36),
+        'mainPadII5': new this.Element(MIDI_CHANNEL.pads, 0x3A),
+        'mainPadII6': new this.Element(MIDI_CHANNEL.pads, 0x3E),
+        'mainPadII7': new this.Element(MIDI_CHANNEL.pads, 0x42),
+        'mainPadII8': new this.Element(MIDI_CHANNEL.pads, 0x46),
+        // Main Pad third section.
+        'mainPadIII1': new this.Element(MIDI_CHANNEL.pads, 0x2B),
+        'mainPadIII2': new this.Element(MIDI_CHANNEL.pads, 0x2F),
+        'mainPadIII3': new this.Element(MIDI_CHANNEL.pads, 0x33),
+        'mainPadIII4': new this.Element(MIDI_CHANNEL.pads, 0x37),
+        'mainPadIII5': new this.Element(MIDI_CHANNEL.pads, 0x3B),
+        'mainPadIII6': new this.Element(MIDI_CHANNEL.pads, 0x3F),
+        'mainPadIII7': new this.Element(MIDI_CHANNEL.pads, 0x43),
+        'mainPadIII8': new this.Element(MIDI_CHANNEL.pads, 0x47),
+        // Main Pad fourth section.
+        'mainPadIV1': new this.Element(MIDI_CHANNEL.pads, 0x2C),
+        'mainPadIV2': new this.Element(MIDI_CHANNEL.pads, 0x30),
+        'mainPadIV3': new this.Element(MIDI_CHANNEL.pads, 0x34),
+        'mainPadIV4': new this.Element(MIDI_CHANNEL.pads, 0x38),
+        'mainPadIV5': new this.Element(MIDI_CHANNEL.pads, 0x3C),
+        'mainPadIV6': new this.Element(MIDI_CHANNEL.pads, 0x40),
+        'mainPadIV7': new this.Element(MIDI_CHANNEL.pads, 0x44),
+        'mainPadIV8': new this.Element(MIDI_CHANNEL.pads, 0x48),
         'pitchMSB': new this.Element(MIDI_CHANNEL.deck, 0x12),
         'pitchLSB': new this.Element(MIDI_CHANNEL.deck, 0x32),
         'jogWheel': new this.Element(MIDI_CHANNEL.deck, 0x13),
         'jogScratch': new this.Element(MIDI_CHANNEL.deck, 0X27),
         'jogTouch': new this.Element(MIDI_CHANNEL.deck, 0X27),
-        'sync': new this.Element(MIDI_CHANNEL.deck, 0x01),
-        'load': new this.Element(MIDI_CHANNEL.deck, 0x02),
-        'encoderLeft': new this.Element(MIDI_CHANNEL.deck, 0X05),
-        'encoderLeftPush': new this.Element(MIDI_CHANNEL.encoderPush, 0X11),
-        'encoderRight': new this.Element(MIDI_CHANNEL.deck, 0X06),
-        'encoderRightPush': new this.Element(MIDI_CHANNEL.encoderPush, 0X14),
-        'shift': new this.Element(MIDI_CHANNEL.deck, 0x0F),
         'cue': new this.Element(MIDI_CHANNEL.deck, 0x19),
         'play': new this.Element(MIDI_CHANNEL.deck, 0x1A),
         // Track Pad mode left
@@ -301,11 +337,11 @@ VCI400.Library = function(midiMap) {
         midiIn: [INPUT.browseTurn.continuesControl, INPUT.browseTurn.controlNumber],
         input: function (channel, control, value) {
             let balanceResult = ENCODER_BALANCE - value;
-            let factor = 1
+            let param = 1
             if (balanceResult < 0) {
-                factor = -1
+                param = -1
             }
-            this.inSetParameter(factor * ENCODER_BALANCE - balanceResult);
+            this.inSetParameter(param);
         },
         unshift: function() {
             this.inKey = "MoveVertical";
@@ -417,6 +453,101 @@ VCI400.Deck = function (midiMap) {
         midiIn: {'msb': [INPUT.pitchMSB.continuesControl, INPUT.pitchMSB.controlNumber], 'lsb': [INPUT.pitchLSB.continuesControl, INPUT.pitchLSB.controlNumber]},
         inKey: 'rate',
     });
+
+    // Main Pad first section mapped to hotcues:
+    for (let i = 1; i <= 8; i++) {
+        let input = INPUT["mainPadI" + i];
+        this['hotCue' + i] = new components.HotcueButton({
+            midiIn: [[input.noteOn, input.controlNumber], [input.noteOff, input.controlNumber]],
+            midiOut: [input.noteOn, input.controlNumber],
+            number: i,
+        });
+    }
+
+    // Main Pad second section mapped to loops:
+    let loopSizeList = [0.125, 0.25, 0.5, 1, 2, 4, 8, 16];
+    for (let i = 1; i <= 8; i++) {
+        let input = INPUT["mainPadII" + i];
+        let loopSize = loopSizeList[i-1];
+        this['loop' + i] = new components.Button({
+            midiIn: [[input.noteOn, input.controlNumber], [input.noteOff, input.controlNumber]],
+            midiOut: [input.noteOn, input.controlNumber],
+            outKey: "beatloop_" + loopSize + "_enabled",
+            unshift: function() {
+                this.inKey = "beatloop_" + loopSize + "_activate";
+            },
+            shift: function() {
+                this.inKey = "beatloop_" + loopSize + "_toggle";
+            },
+        });
+    }
+
+    // Main Pad third section mapped to beatjump:
+    let jumpSizeList = [0.5, 1, 2, 4, 8, 16, 32, 64];
+    for (let i = 1; i <= 8; i++) {
+        let input = INPUT["mainPadIII" + i];
+        let jumpSize = jumpSizeList[i-1];
+        this['beatJump' + i] = new components.Button({
+            midiIn: [[input.noteOn, input.controlNumber], [input.noteOff, input.controlNumber]],
+            unshift: function() {
+                this.inKey = "beatjump_" + jumpSize + "_forward";
+            },
+            shift: function() {
+                this.inKey = "beatjump_" + jumpSize + "_backward";
+            },
+
+        });
+    }
+
+    // Main Pad last section mapped to track start and end hotcues:
+    this['introStart'] = new components.Button({
+        midiIn: [[INPUT.mainPadIV1.noteOn, INPUT.mainPadIV1.controlNumber], [INPUT.mainPadIV1.noteOff, INPUT.mainPadIV1.controlNumber]],
+        midiOut: [INPUT.mainPadIV1.noteOn, INPUT.mainPadIV1.controlNumber],
+        outKey: "intro_start_enabled",
+        unshift: function() {
+            this.inKey = "intro_start_activate";
+        },
+        shift: function() {
+            this.inKey = "intro_start_clear";
+        },
+    });
+
+    this['introEnd'] = new components.Button({
+        midiIn: [[INPUT.mainPadIV2.noteOn, INPUT.mainPadIV2.controlNumber], [INPUT.mainPadIV2.noteOff, INPUT.mainPadIV2.controlNumber]],
+        midiOut: [INPUT.mainPadIV2.noteOn, INPUT.mainPadIV2.controlNumber],
+        outKey: "intro_end_enabled",
+        unshift: function() {
+            this.inKey = "intro_end_activate";
+        },
+        shift: function() {
+            this.inKey = "intro_end_clear";
+        },
+    });
+
+    this['outroStart'] = new components.Button({
+        midiIn: [[INPUT.mainPadIV3.noteOn, INPUT.mainPadIV3.controlNumber], [INPUT.mainPadIV3.noteOff, INPUT.mainPadIV3.controlNumber]],
+        midiOut: [INPUT.mainPadIV3.noteOn, INPUT.mainPadIV3.controlNumber],
+        outKey: "outro_start_enabled",
+        unshift: function() {
+            this.inKey = "outro_start_activate";
+        },
+        shift: function() {
+            this.inKey = "outro_start_clear";
+        },
+    });
+
+    this['outroEnd'] = new components.Button({
+        midiIn: [[INPUT.mainPadIV4.noteOn, INPUT.mainPadIV4.controlNumber], [INPUT.mainPadIV4.noteOff, INPUT.mainPadIV4.controlNumber]],
+        midiOut: [INPUT.mainPadIV4.noteOn, INPUT.mainPadIV4.controlNumber],
+        outKey: "outro_end_enabled",
+        unshift: function() {
+            this.inKey = "outro_end_activate";
+        },
+        shift: function() {
+            this.inKey = "outro_end_clear";
+        },
+    });
+
 
     this.jogWheel =     this.jogWheel = new components.JogWheelBasic({
         deck: GROUP_NUMBER,
