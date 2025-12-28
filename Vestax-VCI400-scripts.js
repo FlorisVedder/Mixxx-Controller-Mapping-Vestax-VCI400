@@ -77,11 +77,14 @@ VCI400.midiMapGlobal = function () {
     const MIDI_CHANNEL = 15;
 
     this.input = {
+        'cueMix': new this.Element(MIDI_CHANNEL, 0x2A),
         'master': new this.Element(MIDI_CHANNEL, 0x2B),
+        'headSplit': new this.Element(MIDI_CHANNEL, 0x6A),
         'centerPad1': new this.Element(MIDI_CHANNEL, 0x6B),
         'centerPad2': new this.Element(MIDI_CHANNEL, 0x6C),
         'centerPad3': new this.Element(MIDI_CHANNEL, 0x6D),
         'centerPad4': new this.Element(MIDI_CHANNEL, 0x6E),
+        'miniFader': new this.Element(MIDI_CHANNEL, 0x27),
         'browseTurn': new this.Element(MIDI_CHANNEL, 0x28),
         'browseClick': new this.Element(12, 0x71),
         'crossFader': new this.Element(1, 0x14),
@@ -380,9 +383,27 @@ VCI400.Master = function(midiMap) {
         inKey: `gain`
     });
 
+    this.masterGain = new components.Button({
+        midiIn: [[INPUT.headSplit.noteOn, INPUT.headSplit.controlNumber],[INPUT.headSplit.noteOff, INPUT.headSplit.controlNumber]],
+        midiOut: [INPUT.headSplit.noteOn, INPUT.headSplit.controlNumber],
+        key: `headSplit`,
+        type: components.Button.prototype.types.toggle,
+    });
+
+    this.headphoneGain = new components.Pot({
+        midiIn: [INPUT.miniFader.continuesControl, INPUT.miniFader.controlNumber],
+        inKey: `headGain`,
+        max: 64,
+    });
+
     this.crossFader = new components.Pot({
         midiIn: [INPUT.crossFader.continuesControl, INPUT.crossFader.controlNumber],
         inKey: 'crossfader',
+    });
+
+    this.cueMix = new components.Pot({
+        midiIn: [INPUT.cueMix.continuesControl, INPUT.cueMix.controlNumber],
+        inKey: `headMix`
     });
 
     this.reconnectComponents(function (component) {
