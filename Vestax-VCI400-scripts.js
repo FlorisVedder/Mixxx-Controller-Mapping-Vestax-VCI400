@@ -328,6 +328,22 @@ VCI400.Shift.prototype = new components.ComponentContainer()
 VCI400.Library = function(midiMap) {
     const INPUT = midiMap.input;
 
+    this.showLibrary = new components.Button({
+        midiIn: [[INPUT.centerPad1.noteOn, INPUT.centerPad1.controlNumber], [INPUT.centerPad1.noteOff, INPUT.centerPad1.controlNumber]],
+        midiOut: [INPUT.centerPad1.noteOn, INPUT.centerPad1.controlNumber],
+        key: 'show_maximized_library',
+        group: "[Skin]",
+        type: components.Button.prototype.types.toggle,
+    });
+
+    this.showEffectRack = new components.Button({
+        midiIn: [[INPUT.centerPad2.noteOn, INPUT.centerPad2.controlNumber], [INPUT.centerPad2.noteOff, INPUT.centerPad2.controlNumber]],
+        midiOut: [INPUT.centerPad2.noteOn, INPUT.centerPad2.controlNumber],
+        key: 'show_effectrack',
+        group: "[Skin]",
+        type: components.Button.prototype.types.toggle,
+    });
+
     this.focusBackward = new components.Button({
         midiIn: [INPUT.centerPad3.noteOn, INPUT.centerPad3.controlNumber],
         inKey: 'MoveFocusBackward',
